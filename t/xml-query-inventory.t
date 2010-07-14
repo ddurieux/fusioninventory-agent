@@ -18,8 +18,14 @@ use warnings;
 
 use Test::More;
 use FindBin;
-use XML::TreePP;
+
+use FusionInventory::Agent;
 use FusionInventory::Agent::XML::Query::Inventory;
+
+if (!eval "use XML::TreePP;1") {
+    eval "use Test::More skip_all => 'Missing XML::TreePP';";
+    exit 0
+}
 
 my $test = {
     'REQUEST' => {
@@ -28,26 +34,22 @@ my $test = {
         'CONTENT' => {
             'NETWORKS' => '',
             'BIOS' => '',
-            'VERSIONCLIENT' => 'FusionInventory-Agent_vblabla',
+            'VERSIONCLIENT' => $FusionInventory::Agent::AGENT_STRING ||
+            'FusionInventory-Agent_v'.$FusionInventory::Agent::VERSION,
             'DRIVES' => [
             {
                 'VOLUMN' => '/dev/sda2',
                 'TOTAL' => '18777',
                 'SERIAL' => '7f8d8f98-15d7-4bdb-b402-46cbed25432b',
-                'LABEL' => '',
                 'FREE' => '9120',
                 'TYPE' => '/',
-                'CREATEDATE' => '',
                 'FILESYSTEM' => 'ext3'
             },
             {
                 'VOLUMN' => '/dev/hda2',
                 'TOTAL' => '177',
-                'SERIAL' => '',
-                'LABEL' => '',
                 'FREE' => '90',
                 'TYPE' => '/toto',
-                'CREATEDATE' => '',
                 'FILESYSTEM' => 'ext4'
             }
             ],
@@ -69,15 +71,16 @@ my $test = {
                 'ARCHNAME' => 'i486-linux-gnu-thread-multi',
                 'CHECKSUM' => '262143',
                 'PROCESSORN' => '1',
-                'PROCESSORT' => ''
+                'PROCESSORT' => 'void CPU',
+                'VMSYSTEM' => 'Physical'
             },
             'CPUS' => {
                 'SERIAL' => 'AEZVRV',
                 'MANUFACTURER' => 'FusionInventory Developers',
-                'TYPE' => '',
                 'SPEED' => '1456',
                 'THREAD' => '3',
-                'CORE' => ''
+                'NAME' => 'void CPU',
+                'CORE' => '1'
             }
         }
     }
@@ -87,7 +90,7 @@ my $test = {
 plan tests => 1;
 my $logger = Logger->new ();
 my $backend = Backend->new ();
-my $config = {VERSION => 'blabla'};
+my $config = {VERSION => $FusionInventory::Agent::VERSION};
 my $target = {
     deviceid => 'test-deviceid',
     type => 'server',
